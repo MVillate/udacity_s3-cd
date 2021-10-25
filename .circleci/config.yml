@@ -11,7 +11,7 @@ jobs:
       - run:
           name: Execute bucket.yaml - Create Cloudformation Stack
           command: |
-            aws cloudformation deploy \
+            aws --region us-east-2 cloudformation deploy \
             --template-file file://cf_templates/template_bucket.yaml \
             --stack-name stack-create-bucket-${CIRCLE_WORKFLOW_ID:0:7} \
             --parameter-overrides MyBucketName="mybucket-${CIRCLE_WORKFLOW_ID:0:7}"
