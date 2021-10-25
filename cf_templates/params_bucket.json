@@ -1,0 +1,6 @@
+[
+    {
+        "ParameterKey": "MyBucketName",
+        "ParameterValue": "mv-useast2-bucket1"
+    }
+]
