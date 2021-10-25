@@ -3,20 +3,7 @@ version: 2.1
 commands:
 
 jobs:
-  deploy-frontend:
-    docker:
-    - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run:
-          name: Execute bucket.yaml - Create Cloudformation Stack
-          command: |
-            aws cloudformation deploy \
-            --stack-name stack-create-bucket-${CIRCLE_WORKFLOW_ID:0:7} \
-            --template-file cf_templates/template_bucket.yaml \
-            --parameter-overrides MyBucketName="mybucket-${CIRCLE_WORKFLOW_ID:0:7}"
-      - run: aws s3 sync . s3://mybucket-${CIRCLE_WORKFLOW_ID:0:7} --delete
-  
+
   get_last_deployment_id:
     docker:
       - image: amazon/aws-cli
@@ -33,6 +20,21 @@ jobs:
           root: ~/
           paths: 
             - textfile.txt 
+      - run: grep ~/textfile.txt
+
+  deploy-frontend:
+    docker:
+    - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Execute bucket.yaml - Create Cloudformation Stack
+          command: |
+            aws cloudformation deploy \
+            --stack-name stack-create-bucket-${CIRCLE_WORKFLOW_ID:0:7} \
+            --template-file cf_templates/template_bucket.yaml \
+            --parameter-overrides MyBucketName="mybucket-${CIRCLE_WORKFLOW_ID:0:7}"
+      - run: aws s3 sync . s3://mybucket-${CIRCLE_WORKFLOW_ID:0:7} --delete
 
   promote_to_production:
     docker:
@@ -47,11 +49,29 @@ jobs:
             --stack-name production-distro \
             --parameter-overrides PipelineID="mybucket-${CIRCLE_WORKFLOW_ID:0:7}"
 
+  clean_up_old_front_end:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum install -y tar gzip
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Destroy the previous production version's S3 bucket and CloudFormation stack. 
+          # Use $OldBucketID environment variable or mybucket644752792305 below.
+          # Similarly, you can create and use $OldStackID environment variable in place of production-distro 
+          command: |
+            export OldBucketID=$(cat ~/textfile.txt)
+            aws s3 rm "s3://${OldBucketID}" --recursive
+            aws cloudformation delete-stack --stack-name stack-create-bucket-${OldBucketID:9:16}
+
 workflows:
   aws-cd-workflow:
     jobs:
+      - get_last_deployment_id
       - deploy-frontend
-      - get_last_deployment_id:
-          requires: ['deploy-frontend']
       - promote_to_production:
-          requires: ['get_last_deployment_id']
+          requires: ['deploy-frontend']
+      - clean_up_old_front_end:
+          requires: ['promote_to_production']
