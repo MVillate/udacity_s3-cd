@@ -57,17 +57,15 @@ jobs:
       - run: yum install -y tar gzip
       - attach_workspace:
           at: ~/
-      # - run: cat textfile.txt
-      - run: ls
       - run: cat ~/textfile.txt
-      # - run:
-      #     name: Destroy the previous production version's S3 bucket and CloudFormation stack. 
-      #     # Use $OldBucketID environment variable or mybucket644752792305 below.
-      #     # Similarly, you can create and use $OldStackID environment variable in place of production-distro 
-      #     command: |
-      #       export OldBucketID=$(cat ~/textfile.txt)
-      #       aws s3 rm "s3://${OldBucketID}" --recursive
-      #       aws cloudformation delete-stack --stack-name stack-create-bucket-${OldBucketID:9:16}
+      - run:
+          name: Destroy the previous production version's S3 bucket and CloudFormation stack. 
+          # Use $OldBucketID environment variable or mybucket644752792305 below.
+          # Similarly, you can create and use $OldStackID environment variable in place of production-distro 
+          command: |
+            export OldBucketID=$(cat ~/textfile.txt)
+            aws s3 rm "s3://${OldBucketID}" --recursive
+            aws cloudformation delete-stack --stack-name stack-create-bucket-${OldBucketID:9:16}
 
 workflows:
   aws-cd-workflow:
