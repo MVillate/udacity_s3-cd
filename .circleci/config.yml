@@ -51,3 +51,7 @@ workflows:
   aws-cd-workflow:
     jobs:
       - deploy-frontend
+      - get_last_deployment_id:
+          requires: ['deploy-frontend']
+      - promote_to_production:
+          requires: ['get_last_deployment_id']
