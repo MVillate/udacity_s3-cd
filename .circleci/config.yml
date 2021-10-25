@@ -13,7 +13,7 @@ jobs:
           command: |
             aws cloudformation deploy \
             --stack-name stack-create-bucket-${CIRCLE_WORKFLOW_ID:0:7} \
-            --template-file file://cf_templates/template_bucket.yaml \
+            --template-file cf_templates/template_bucket.yaml \
             --parameter-overrides MyBucketName="mybucket-${CIRCLE_WORKFLOW_ID:0:7}"
       - run: aws s3 sync . s3://mybucket-${CIRCLE_WORKFLOW_ID:0:7} --delete
 
