@@ -71,8 +71,8 @@ workflows:
   aws-cd-workflow:
     jobs:
       - get_last_deployment_id
-      # - deploy-frontend
-      # - promote_to_production:
-      #     requires: ['deploy-frontend']
+      - deploy-frontend
+      - promote_to_production:
+          requires: ['deploy-frontend']
       - clean_up_old_front_end:
-            requires: ['get_last_deployment_id']
+            requires: ['promote_to_production']
